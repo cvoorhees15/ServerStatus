@@ -1,19 +1,18 @@
 using System;
 using System.IO;
 using Renci.SshNet;
-using Renci.SshNet.Common;
 
 class SshConnection : Connection
 {
     // Override Fields
-    private string     connectionType   = "SSH";
-    private bool       connectionStatus = false;
+    private string connectionType = "SSH";
+    private bool connectionStatus = false;
 
     // New Fields
-    private SshClient? client           = null;
-    private string     hostName         = "";
-    private string     userName         = "";
-    private string     password         = "";
+    private SshClient? client = null;
+    private string hostName = "";
+    private string userName = "";
+    private string password = "";
 
     // Properties
     public override string ConnectionType
@@ -49,10 +48,10 @@ class SshConnection : Connection
     public string Password
     {
         get { return password; }
-        set { password = value; }   
+        set { password = value; }
     }
 
-    public SshConnection (string host, string user, string password)
+    public SshConnection(string host, string user, string password)
     {
         HostName = host;
         UserName = user;
@@ -61,51 +60,75 @@ class SshConnection : Connection
 
     public override bool connect()
     {
-        try // SSH connection logic
+        try
         {
-            Logger.LogInfo($"Attempting connection to {hostName}...");
-            using (var newClient = new SshClient(hostName, 22, userName, password))
+            Logger.Instance.LogInfo($"Attempting connection to {hostName}...");
+
+            // Store the client for later use
+            Client = new SshClient(hostName, 22, userName, password);
+            // Accept the host key
+
+            // Optional: Set timeout
+            // Client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(30);
+
+            // Connect
+            Client.Connect();
+            Logger.Instance.LogInfo("Connected successfully!");
+
+            // Test a command
+            var testCommand = Client.RunCommand("systemctl status");
+            Logger.Instance.LogInfo($"Test command output:\n {testCommand.Result}");
+
+            if (testCommand.ExitStatus != 0)
             {
-                Client = newClient;
-                connectionStatus = true;
-
-                // Set timeout
-                // client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(30);
-
-                // Connect
-                newClient.Connect();
-                Logger.LogInfo("Connected successfully!");
-                
-                // Test a command
-                var testCommand = newClient.RunCommand("hostname && uptime");
-                Logger.LogInfo($"\nTest command output:\n{testCommand.Result}");
-                
-                if (testCommand.ExitStatus != 0)
-                {
-                    Logger.LogError($"Test command failed: {testCommand.Error}");
-                }
+                Logger.Instance.LogError($"Test command failed: {testCommand.Error}");
             }
+
+            connectionStatus = true;
+        }
+        catch (Renci.SshNet.Common.SshConnectionException ex)
+        {
+            Logger.Instance.LogError($"{ConnectionType} Connection error: {ex.Message}");
+            connectionStatus = false;
+        }
+        catch (System.Net.Sockets.SocketException ex)
+        {
+            Logger.Instance.LogError($"Network error: {ex.Message} (Error code: {ex.SocketErrorCode})");
+            connectionStatus = false;
         }
         catch (Exception ex)
         {
-            Logger.LogError($"Connection failed: {ex.Message}");
+            Logger.Instance.LogError($"Unknown error: {ex.Message}");
             connectionStatus = false;
         }
+
         return connectionStatus;
     }
 
     public override bool disconnect()
     {
         // SSH disconnection logic
-        connectionStatus = false;
-        return true;
+        if (Client != null && ConnectionStatus == true)
+        {
+            Client.Disconnect();
+            Logger.Instance.LogInfo($"Disconnected from {HostName}");
+            connectionStatus = false;
+            return true;
+        }
+        else
+        {
+            Logger.Instance.LogInfo("No connection exists to disconnect from");
+            return false;
+        }
     }
 
     public override bool reconnect()
     {
         // SSH reconnection logic
         // Disconnect, then connect
-        disconnect();
+        if (!disconnect())
+            return false;
+
         return connect();
     }
 }

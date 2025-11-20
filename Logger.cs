@@ -27,7 +27,7 @@ public class Logger
 
     public void Log(string message)
     {
-        Console.WriteLine($"[{DateTime.Now}] {message}");
+        Console.WriteLine($"[{DateTime.Now}] {message}\n");
     }
 
     public void LogInfo(string message)

@@ -13,7 +13,4 @@ abstract class Connection()
     public abstract string ConnectionType { get; set; }
 
     public abstract bool ConnectionStatus { get; set; }
-
-    // Logger instance for child classes to use
-    protected Logger Logger => Logger.Instance;
 }
