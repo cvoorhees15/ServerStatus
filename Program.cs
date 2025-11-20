@@ -1,9 +1,27 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 
-SshConnection ssh = new SshConnection("voorhees-server1", "caleb", "Fcalax#17");
+string host = "voorhees-server1";
+string user = "caleb";
+string password = "Fcalax#17";
+int tcpPort = 1717;
 
-Logger.Instance.LogInfo("Enter 'q' to quit...");
+Connection connection;
+if (args.Contains("--tcp"))
+{
+    connection = new TCPConnection(host, tcpPort);
+}
+else if (args.Contains("--ssh"))
+{
+    connection = new SshConnection(host, user, password);
+}
+else // default to ssh for now
+{
+    connection = new SshConnection(host, user, password);   
+}
+
+    Logger.Instance.LogInfo("Enter 'q' to quit...");
 
 // Used to interrupt/quit main thread while it's sleeping
 bool shouldQuit = false;
@@ -38,7 +56,7 @@ inputThread.Start();
 // Main loop
 while (!shouldQuit)
 {
-    ssh.connect();
+    connection.connect();
     cts.Token.WaitHandle.WaitOne(60000);
-    ssh.disconnect();
+    connection.disconnect();
 }
