@@ -1,24 +1,24 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
-string host = "voorhees-server1";
-string user = "caleb";
-string password = "Fcalax#17";
-int tcpPort = 1717;
+Credentials.Load();
 
 Connection connection;
+
+// Process CLI args
 if (args.Contains("--tcp"))
 {
-    connection = new TCPConnection(host, tcpPort);
+    connection = new TCPConnection(Credentials.Host!, Credentials.TcpPort);
 }
 else if (args.Contains("--ssh"))
 {
-    connection = new SshConnection(host, user, password);
+    connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
 }
 else // default to ssh for now
 {
-    connection = new SshConnection(host, user, password);   
+    connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
 }
 
     Logger.Instance.LogInfo("Enter 'q' to quit...");
