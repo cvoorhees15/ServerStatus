@@ -20,6 +20,10 @@ else if (args.Contains("--ssh"))
 {
     connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
 }
+else if (args.Contains("--ping"))
+{
+    connection = new PingConnection(Credentials.Host!);
+}
 else // default to ssh for now
 {
     connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
