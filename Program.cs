@@ -2,8 +2,12 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
+using ServerStatus.Util;
 
+// Initialization
 Credentials.Load();
+
+Emailer emailer = new Emailer(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Credentials.Password!);
 
 Connection connection;
 
@@ -21,7 +25,7 @@ else // default to ssh for now
     connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
 }
 
-    Logger.Instance.LogInfo("Enter 'q' to quit...");
+Logger.Instance.LogInfo("Enter 'q' to quit...");
 
 // Used to interrupt/quit main thread while it's sleeping
 bool shouldQuit = false;
@@ -56,7 +60,15 @@ inputThread.Start();
 // Main loop
 while (!shouldQuit)
 {
-    connection.connect();
-    cts.Token.WaitHandle.WaitOne(60000);
+    if (connection.connect())
+    {
+        cts.Token.WaitHandle.WaitOne(60000);
+    }
+    else
+    {
+        Logger.Instance.LogInfo("Down time detected, informing admin.");
+        emailer.SendEmail(Credentials.AdminEmail!, "Server Down", "The server is down.");
+    }
+
     connection.disconnect();
 }
