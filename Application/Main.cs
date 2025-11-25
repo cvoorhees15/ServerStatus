@@ -4,65 +4,20 @@ using System.Linq;
 using System.Threading;
 using ServerStatus.Util;
 
-// Initialization
+// Initializate utils
 Credentials.Load();
+Emailer.Load(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Credentials.Password!);
 
-Emailer emailer = new Emailer(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Credentials.Password!);
+// Translate CLI args
+var cli = new CommandLineManager();
+var connection = cli.ParseArgs(args);
 
-ConnectionBase connection;
-
-// Process CLI args
-if (args.Contains("--tcp"))
-{
-    connection = new TCPConnection(Credentials.Host!, Credentials.TcpPort);
-}
-else if (args.Contains("--ssh"))
-{
-    connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
-}
-else if (args.Contains("--ping"))
-{
-    connection = new PingConnection(Credentials.Host!);
-}
-else // default to ssh for now
-{
-    connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
-}
-
-Logger.Instance.LogInfo("Enter 'q' to quit...");
-
-// Used to interrupt/quit main thread while it's sleeping
-bool shouldQuit = false;
+// Handle CLI keyboard interrupt
 var cts = new CancellationTokenSource();
-
-// Start a background thread to listen for quit command
-var inputThread = new Thread(() =>
-{
-    while (!shouldQuit)
-    {
-        // Handle keyboard input
-        if (Console.KeyAvailable)
-        {
-            var key = Console.ReadKey(true);
-            if (char.ToLower(key.KeyChar) == 'q')
-            {
-                shouldQuit = true;
-                cts.Cancel();
-                Logger.Instance.LogInfo("Quitting...");
-            }
-        }
-        else
-        {
-            Thread.Sleep(100);
-        }
-    }
-});
-
-inputThread.IsBackground = true;
-inputThread.Start();
+cli.StartKeyboardHandling(cts);
 
 // Main loop
-while (!shouldQuit)
+while (!cli.QuitApp)
 {
     if (connection.connect())
     {
@@ -71,7 +26,7 @@ while (!shouldQuit)
     else
     {
         Logger.Instance.LogInfo("Down time detected, informing admin.");
-        emailer.SendEmail(Credentials.AdminEmail!, "Server Down", "The server is down.");
+        Emailer.SendEmail(Credentials.AdminEmail!, "Server Down", "The server is down.");
     }
 
     connection.disconnect();

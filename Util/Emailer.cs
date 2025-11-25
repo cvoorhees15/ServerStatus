@@ -2,14 +2,14 @@ using System.Net.Mail;
 
 namespace ServerStatus.Util;
 
-public class Emailer
+public static class Emailer
 {
-    public string SmtpHost { get; private set; }
-    public int    SmtpPort { get; private set; }
-    public string Username { get; private set; }
-    public string Password { get; private set; }
+    public static string? SmtpHost { get; private set; }
+    public static int     SmtpPort { get; private set; }
+    public static string? Username { get; private set; }
+    public static string? Password { get; private set; }
 
-    public Emailer(string smtpHost, int smtpPort, string username, string password)
+    public static void Load(string smtpHost, int smtpPort, string username, string password)
     {
         SmtpHost = smtpHost;
         SmtpPort = smtpPort;
@@ -17,7 +17,7 @@ public class Emailer
         Password = password;
     }
 
-    public void SendEmail(string to, string subject, string body)
+    public static void SendEmail(string to, string subject, string body)
     {
         using var client = new SmtpClient(SmtpHost, SmtpPort)
         {
@@ -25,7 +25,10 @@ public class Emailer
             EnableSsl = true
         };
 
-        var mail = new MailMessage(Username, to, subject, body);
-        client.Send(mail);
+        if (Username != null)
+        {
+            var mail = new MailMessage(Username, to, subject, body);
+            client.Send(mail);
+        }
     }
 }
