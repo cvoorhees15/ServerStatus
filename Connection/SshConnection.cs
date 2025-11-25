@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Renci.SshNet;
 
-class SshConnection : Connection
+class SshConnection : ConnectionBase
 {
     // Override Fields
     private string connectionType = "SSH";

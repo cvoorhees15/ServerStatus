@@ -1,7 +1,7 @@
 using System;
 using System.Net.NetworkInformation;
 
-class PingConnection : Connection
+class PingConnection : ConnectionBase
 {
     // Override Fields
     private string connectionType = "Ping";

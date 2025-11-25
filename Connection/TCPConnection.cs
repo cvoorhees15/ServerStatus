@@ -1,7 +1,7 @@
 using System;
 using System.Net.Sockets;
 
-class TCPConnection : Connection
+class TCPConnection : ConnectionBase
 {
     // Override Fields
     private string connectionType = "TCP";

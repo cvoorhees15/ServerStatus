@@ -1,10 +1,10 @@
 using System;
 
-abstract class Connection()
+abstract class ConnectionBase()
 {
     // Store connection information
-    public abstract string ConnectionType   { get; set; }
-    
+    public abstract string ConnectionType { get; set; }
+
     public abstract bool ConnectionStatus { get; set; }
 
     // Manage any type of connection

@@ -9,7 +9,7 @@ Credentials.Load();
 
 Emailer emailer = new Emailer(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Credentials.Password!);
 
-Connection connection;
+ConnectionBase connection;
 
 // Process CLI args
 if (args.Contains("--tcp"))
