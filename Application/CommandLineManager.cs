@@ -5,6 +5,18 @@ using ServerStatus.Util;
 
 class CommandLineManager
 {
+    public CommandLineManager()
+    {
+        Console.WriteLine(@"
+  ____                             ____  _        _             
+ / ___|  ___ _ ____   _____ _ __  / ___|| |_ __ _| |_ _   _ ___ 
+ \___ \ / _ \ '__\ \ / / _ \ '__| \___ \| __/ _` | __| | | / __|
+  ___) |  __/ |   \ V /  __/ |     ___) | || (_| | |_| |_| \__ \
+ |____/ \___|_|    \_/ \___|_|    |____/ \__\__,_|\__|\__,_|___/
+
+");
+    }
+
     public bool QuitApp { get; private set; } = false;
 
     public ConnectionBase ParseArgs(string[] args)
