@@ -14,21 +14,21 @@ public static class Credentials
     // Load credentials from file
     public static void Load()
     {
-        // Parse lines
-        string credsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".creds", "ServerStatus.txt");
-        string[] creds   = File.ReadAllLines(credsPath);
+        string credsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".creds", "ServerStatus.json");
+        string jsonText = File.ReadAllText(credsPath);
+        var creds = Newtonsoft.Json.Linq.JObject.Parse(jsonText);
 
         // SSH
-        Host       = creds[0];
-        User       = creds[1];
-        Password   = creds[2];
+        Host       = creds["Host"]?.ToString() ?? "";
+        User       = creds["User"]?.ToString() ?? "";
+        Password   = creds["Password"]?.ToString() ?? "";
 
         // TCP
-        TcpPort    = int.Parse(creds[3]);
+        TcpPort    = creds["TcpPort"] != null ? (int)creds["TcpPort"]! : 0;
 
         // Email
-        SmtpHost   = creds[4];
-        SmtpPort   = int.Parse(creds[5]);
-        AdminEmail = creds[6];
+        SmtpHost   = creds["SmtpHost"]?.ToString() ?? "";
+        SmtpPort   = creds["SmtpPort"] != null ? (int)creds["SmtpPort"]! : 0;
+        AdminEmail = creds["AdminEmail"]?.ToString() ?? "";
     }
 }

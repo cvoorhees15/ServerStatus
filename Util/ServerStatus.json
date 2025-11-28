@@ -1,0 +1,9 @@
+{
+  "Host": "ExampleHostname1",
+  "User": "username",
+  "Password": "password123",
+  "TcpPort": 1234,
+  "SmtpHost": "smtp.example.com",
+  "SmtpPort": 587,
+  "AdminEmail": "admin@example.com"
+}
