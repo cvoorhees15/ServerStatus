@@ -4,7 +4,7 @@ using System.Net.NetworkInformation;
 class PingConnection : ConnectionBase
 {
     // Override Fields
-    private string connectionType = "Ping";
+    private ConnectionBaseTypes connectionType = ConnectionBaseTypes.Ping;
     private bool connectionStatus = false;
 
     // New Fields
@@ -12,7 +12,7 @@ class PingConnection : ConnectionBase
     private int timeout = 5000; // 5 seconds default
 
     // Properties
-    public override string ConnectionType
+    public override ConnectionBaseTypes ConnectionType
     {
         get { return connectionType; }
         set { connectionType = value; }
@@ -42,7 +42,7 @@ class PingConnection : ConnectionBase
         Timeout = timeoutMs;
     }
 
-    public override bool connect()
+    public override bool Connect()
     {
         try
         {
@@ -73,7 +73,7 @@ class PingConnection : ConnectionBase
         return connectionStatus;
     }
 
-    public override bool disconnect()
+    public override bool Disconnect()
     {
         // Ping is stateless, so just update status
         if (connectionStatus)
@@ -89,13 +89,13 @@ class PingConnection : ConnectionBase
         }
     }
 
-    public override bool reconnect()
+    public override bool Reconnect()
     {
         // Ping reconnection logic
         // Disconnect, then connect
-        if (!disconnect())
+        if (!Disconnect())
             return false;
 
-        return connect();
+        return Connect();
     }
 }

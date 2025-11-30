@@ -4,7 +4,7 @@ using System.Net.Sockets;
 class TCPConnection : ConnectionBase
 {
     // Override Fields
-    private string connectionType = "TCP";
+    private ConnectionBaseTypes connectionType = ConnectionBaseTypes.TCP;
     private bool connectionStatus = false;
 
     // New Fields
@@ -13,7 +13,7 @@ class TCPConnection : ConnectionBase
     private int port = 0;
 
     // Properties
-    public override string ConnectionType
+    public override ConnectionBaseTypes ConnectionType
     {
         get { return connectionType; }
         set { connectionType = value; }
@@ -49,7 +49,7 @@ class TCPConnection : ConnectionBase
         Port = port;
     }
 
-    public override bool connect()
+    public override bool Connect()
     {
         try
         {
@@ -88,7 +88,7 @@ class TCPConnection : ConnectionBase
         return connectionStatus;
     }
 
-    public override bool disconnect()
+    public override bool Disconnect()
     {
         // TCP disconnection logic
         if (Client != null && ConnectionStatus == true)
@@ -105,13 +105,13 @@ class TCPConnection : ConnectionBase
         }
     }
 
-    public override bool reconnect()
+    public override bool Reconnect()
     {
         // TCP reconnection logic
         // Disconnect, then connect
-        if (!disconnect())
+        if (!Disconnect())
             return false;
 
-        return connect();
+        return Connect();
     }
 }

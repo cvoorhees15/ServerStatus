@@ -1,11 +1,12 @@
 using System;
 using System.IO;
+using Org.BouncyCastle.Tls;
 using Renci.SshNet;
 
 class SshConnection : ConnectionBase
 {
     // Override Fields
-    private string connectionType = "SSH";
+    private ConnectionBaseTypes connectionType = ConnectionBaseTypes.SSH;
     private bool connectionStatus = false;
 
     // New Fields
@@ -15,7 +16,7 @@ class SshConnection : ConnectionBase
     private string password = "";
 
     // Properties
-    public override string ConnectionType
+    public override ConnectionBaseTypes ConnectionType
     {
         get { return connectionType; }
         set { connectionType = value; }
@@ -58,11 +59,11 @@ class SshConnection : ConnectionBase
         Password = password;
     }
 
-    public override bool connect()
+    public override bool Connect()
     {
         try
         {
-            Logger.Instance.LogInfo($"Attempting connection to {hostName}...");
+            Logger.Instance.LogInfo($"Attempting {ConnectionType} connection to {HostName}...");
 
             // Store the client for later use
             Client = new SshClient(hostName, 22, userName, password);
@@ -105,7 +106,7 @@ class SshConnection : ConnectionBase
         return connectionStatus;
     }
 
-    public override bool disconnect()
+    public override bool Disconnect()
     {
         // SSH disconnection logic
         if (Client != null && ConnectionStatus == true)
@@ -122,13 +123,13 @@ class SshConnection : ConnectionBase
         }
     }
 
-    public override bool reconnect()
+    public override bool Reconnect()
     {
         // SSH reconnection logic
         // Disconnect, then connect
-        if (!disconnect())
+        if (!Disconnect())
             return false;
 
-        return connect();
+        return Connect();
     }
 }

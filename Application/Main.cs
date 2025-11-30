@@ -19,7 +19,7 @@ cli.StartKeyboardHandling(cts);
 // Main loop
 while (!cli.QuitApp)
 {
-    if (connection.connect())
+    if (connection.Connect())
     {
         cts.Token.WaitHandle.WaitOne(60000);
     }
@@ -29,5 +29,5 @@ while (!cli.QuitApp)
         Emailer.SendEmail(Credentials.AdminEmail!, "Server Down", "The server is down.");
     }
 
-    connection.disconnect();
+    connection.Disconnect();
 }
