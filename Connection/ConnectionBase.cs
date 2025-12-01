@@ -2,7 +2,7 @@ using System;
 
 abstract class ConnectionBase()
 {
-    public enum ConnectionBaseTypes
+    protected enum ConnectionBaseTypes
     {
         SSH,
         TCP,
@@ -10,7 +10,7 @@ abstract class ConnectionBase()
     }
 
     // Store connection information
-    public abstract ConnectionBaseTypes ConnectionType { get; set; }
+    protected abstract ConnectionBaseTypes ConnectionType { get; set; }
 
     public abstract bool ConnectionStatus { get; set; }
 

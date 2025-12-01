@@ -13,7 +13,7 @@ class TCPConnection : ConnectionBase
     private int port = 0;
 
     // Properties
-    public override ConnectionBaseTypes ConnectionType
+    protected override ConnectionBaseTypes ConnectionType
     {
         get { return connectionType; }
         set { connectionType = value; }

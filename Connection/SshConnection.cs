@@ -16,7 +16,7 @@ class SshConnection : ConnectionBase
     private string password = "";
 
     // Properties
-    public override ConnectionBaseTypes ConnectionType
+    protected override ConnectionBaseTypes ConnectionType
     {
         get { return connectionType; }
         set { connectionType = value; }

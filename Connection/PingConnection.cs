@@ -12,7 +12,7 @@ class PingConnection : ConnectionBase
     private int timeout = 5000; // 5 seconds default
 
     // Properties
-    public override ConnectionBaseTypes ConnectionType
+    protected override ConnectionBaseTypes ConnectionType
     {
         get { return connectionType; }
         set { connectionType = value; }
