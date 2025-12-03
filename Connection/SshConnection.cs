@@ -77,13 +77,8 @@ class SshConnection : ConnectionBase
             Logger.Instance.LogInfo("Connected successfully!");
 
             // Test a command
-            var testCommand = Client.RunCommand("systemctl status");
-            Logger.Instance.LogInfo($"Test command output:\n {testCommand.Result}");
-
-            if (testCommand.ExitStatus != 0)
-            {
-                Logger.Instance.LogError($"Test command failed: {testCommand.Error}");
-            }
+            // var testCommand = Client.RunCommand("systemctl status");
+            // Logger.Instance.LogInfo($"Test command output:\n {testCommand.Result}");
 
             connectionStatus = true;
         }
