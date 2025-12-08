@@ -12,7 +12,7 @@ Emailer.Load(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Cre
 
 // Translate CLI args
 var cli = new CommandLineManager();
-var connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
+var connection = cli.ParseArgs(args);
 
 // Handle CLI keyboard interrupt
 var cts = new CancellationTokenSource();
@@ -20,30 +20,37 @@ cli.StartKeyboardHandling(cts);
 
 if (connection.Connect())
 {
-    // Main loop
-    while (!cli.QuitApp)
+    // Create server performance objects
+    var cpu = new ServerPerformanceCPU((SshConnection)connection);
+    var disk = new ServerPerformanceDisk((SshConnection)connection);
+    var memory = new ServerPerformanceMemory((SshConnection)connection);
+    var network = new ServerPerformanceNetwork((SshConnection)connection);
+
+    // Enable the dynamic display mode
+    cli.StartDisplayMode();
+
+    try
     {
-        // Poll server CPU performance
-        var cpu = new ServerPerformanceCPU(connection);
-        var cpuMetrics = cpu.CheckPerformance();
-        Console.WriteLine(cpuMetrics);
+        // Main loop with streaming display
+        while (!cli.QuitApp)
+        {
+            // Poll server performance metrics
+            var cpuMetrics = cpu.CheckPerformance();
+            var diskMetrics = disk.CheckPerformance();
+            var memoryMetrics = memory.CheckPerformance();
+            var networkMetrics = network.CheckPerformance();
 
-        // Poll server disk performance
-        var disk = new ServerPerformanceDisk(connection);
-        var diskMetrics = disk.CheckPerformance();
-        Console.WriteLine(diskMetrics);
+            // Display metrics in real-time dashboard
+            cli.DisplayServerMetrics(cpuMetrics, memoryMetrics, diskMetrics, networkMetrics);
 
-        // Poll server memory performance
-        var memory = new ServerPerformanceMemory(connection);
-        var memoryMetrics = memory.CheckPerformance();
-        Console.WriteLine(memoryMetrics);
-
-        // Poll server network performance
-        var network = new ServerPerformanceNetwork(connection);
-        var networkMetrics = network.CheckPerformance();
-        Console.WriteLine(networkMetrics);
-
-        Thread.Sleep(1000);
+            Thread.Sleep(1000);
+        }
+    }
+    finally
+    {
+        // Restore normal console mode when exiting
+        cli.EndDisplayMode();
+        connection.Disconnect();
     }
 }
 else
