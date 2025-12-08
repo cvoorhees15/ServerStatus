@@ -29,7 +29,13 @@ class ServerPerformanceDisk : ServerPerformanceBase
         {
             return "SSH client not connected";
         }
-        var command = ServerConnection.Client.RunCommand("df -h");
+        
+        // Enhanced disk command with I/O statistics and usage
+        var command = ServerConnection.Client.RunCommand(
+            "echo 'Disk Usage:' && df -h | head -6 && " +
+            "echo && echo 'Disk I/O Activity:' && " +
+            "iostat -x 1 1 | tail -n +4 | head -5 2>/dev/null || echo 'iostat not available - install sysstat package'"
+        );
         return command.Result;
     }
 

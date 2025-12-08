@@ -29,7 +29,14 @@ class ServerPerformanceCPU : ServerPerformanceBase
         {
             return "SSH client not connected";
         }
-        var command = ServerConnection.Client.RunCommand("top -b -n 1 | grep '%Cpu(s)'");
+        
+        // Enhanced CPU command that provides comprehensive CPU information
+        var command = ServerConnection.Client.RunCommand(
+            "echo 'CPU Usage:' && top -b -n 1 | grep '%Cpu(s)' && " +
+            "echo && echo 'Load Average:' && uptime | awk '{print $8, $9, $10, $11, $12}' && " +
+            "echo && echo 'Top CPU Processes:' && " +
+            "ps aux --sort=-%cpu | head -4 | awk 'NR==1{print $0} NR>1{printf \"%-8s %6s %6s %s\\n\", $1, $3, $4, $11}'"
+        );
         return command.Result;
     }
 

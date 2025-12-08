@@ -29,7 +29,15 @@ class ServerPerformanceNetwork : ServerPerformanceBase
         {
             return "SSH client not connected";
         }
-        var command = ServerConnection.Client.RunCommand("ss -tulnp");
+        
+        // Enhanced network command with connection stats and traffic
+        var command = ServerConnection.Client.RunCommand(
+            "echo 'Network Interfaces:' && ip -s link show | head -10 && " +
+            "echo && echo 'Active Connections:' && " +
+            "ss -tulnp | head -6 && " +
+            "echo && echo 'Network Traffic:' && " +
+            "cat /proc/net/dev | head -4 | awk 'NR>2 {printf \"%-10s RX: %s TX: %s\\n\", $1, $2, $10}'"
+        );
         return command.Result;
     }
 

@@ -144,21 +144,32 @@ class CommandLineManager
     {
         var sb = new StringBuilder();
         var width = Console.WindowWidth;
+        var height = Console.WindowHeight;
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+        // Calculate available space for content
+        var headerHeight = 4; // Header takes ~4 lines
+        var footerHeight = 4; // Footer takes ~4 lines  
+        var sectionBorders = 8; // Top and bottom borders for 4 sections (2 lines each)
+        var minSpacing = 4; // Minimum spacing between sections
+        var availableContentHeight = height - headerHeight - footerHeight - sectionBorders - minSpacing;
+        
+        // Calculate optimal lines per section (more generous allocation)
+        var linesPerSection = Math.Max(12, availableContentHeight / 4); // Increased minimum from 8 to 12
 
         sb.AppendLine(CreateHeader("SERVER STATUS DASHBOARD", timestamp, width));
         sb.AppendLine();
 
-        sb.AppendLine(CreateSection("CPU PERFORMANCE", cpuMetrics, width));
+        sb.AppendLine(CreateSection("CPU PERFORMANCE", cpuMetrics, width, linesPerSection));
         sb.AppendLine();
 
-        sb.AppendLine(CreateSection("MEMORY USAGE", memoryMetrics, width));
+        sb.AppendLine(CreateSection("MEMORY USAGE", memoryMetrics, width, linesPerSection));
         sb.AppendLine();
 
-        sb.AppendLine(CreateSection("DISK USAGE", diskMetrics, width));
+        sb.AppendLine(CreateSection("DISK USAGE", diskMetrics, width, linesPerSection));
         sb.AppendLine();
 
-        sb.AppendLine(CreateSection("NETWORK ACTIVITY", networkMetrics, width));
+        sb.AppendLine(CreateSection("NETWORK ACTIVITY", networkMetrics, width, linesPerSection));
         sb.AppendLine();
 
         sb.AppendLine(CreateFooter("Press 'q' to quit", width));
@@ -184,7 +195,7 @@ class CommandLineManager
         return topBorder + Environment.NewLine + headerLine + Environment.NewLine + bottomBorder;
     }
 
-    private string CreateSection(string title, string content, int width)
+    private string CreateSection(string title, string content, int width, int maxLines = 10)
     {
         var sb = new StringBuilder();
         var titleLine = $"┌─ {title} {new string('─', Math.Max(0, width - title.Length - 6))}┐";
@@ -193,14 +204,20 @@ class CommandLineManager
         if (!string.IsNullOrWhiteSpace(content))
         {
             var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines.Take(3))
+            var processedLines = ProcessStructuredContent(lines, width - 4);
+            
+            // Limit total lines to fit in display - dynamically calculated based on terminal size
+            var linesToShow = Math.Min(processedLines.Count, maxLines);
+            for (int i = 0; i < linesToShow; i++)
             {
-                var cleanLine = line.Trim();
-                if (cleanLine.Length > width - 4)
-                {
-                    cleanLine = cleanLine.Substring(0, width - 7) + "...";
-                }
-                sb.AppendLine($"│ {cleanLine.PadRight(width - 4)} │");
+                sb.AppendLine($"│ {processedLines[i].PadRight(width - 4)} │");
+            }
+            
+            // Add "more data" indicator if truncated
+            if (processedLines.Count > linesToShow)
+            {
+                var moreText = $"... {processedLines.Count - linesToShow} more lines";
+                sb.AppendLine($"│ {moreText.PadRight(width - 4)} │");
             }
         }
         else
@@ -212,6 +229,48 @@ class CommandLineManager
         sb.AppendLine(bottomLine);
 
         return sb.ToString();
+    }
+
+    private List<string> ProcessStructuredContent(string[] lines, int maxWidth)
+    {
+        var result = new List<string>();
+        
+        foreach (var line in lines)
+        {
+            var cleanLine = line.Trim();
+            if (string.IsNullOrEmpty(cleanLine)) continue;
+            
+            // Handle section headers (lines ending with ':')
+            if (cleanLine.EndsWith(":"))
+            {
+                result.Add($"▶ {cleanLine}");
+                continue;
+            }
+            
+            // Handle long lines by wrapping or truncating intelligently
+            if (cleanLine.Length <= maxWidth)
+            {
+                result.Add($"  {cleanLine}");
+            }
+            else
+            {
+                // For data lines, try to preserve important information
+                if (cleanLine.Contains("%") || cleanLine.Contains("GB") || cleanLine.Contains("MB") || cleanLine.Contains("KB"))
+                {
+                    // This looks like metrics data, try to preserve the numbers
+                    var truncated = cleanLine.Substring(0, maxWidth - 3) + "...";
+                    result.Add($"  {truncated}");
+                }
+                else
+                {
+                    // Regular text, just truncate
+                    var truncated = cleanLine.Substring(0, maxWidth - 3) + "...";
+                    result.Add($"  {truncated}");
+                }
+            }
+        }
+        
+        return result;
     }
 
     private string CreateFooter(string text, int width)

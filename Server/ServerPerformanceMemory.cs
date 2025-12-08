@@ -29,7 +29,15 @@ class ServerPerformanceMemory : ServerPerformanceBase
         {
             return "SSH client not connected";
         }
-        var command = ServerConnection.Client.RunCommand("free -h");
+        
+        // Enhanced memory command that provides dynamic information similar to top's CPU output
+        var command = ServerConnection.Client.RunCommand(
+            "echo 'Memory Usage:' && free -h | head -2 && " +
+            "echo && echo 'Memory Pressure:' && " +
+            "cat /proc/meminfo | grep -E '^(MemAvailable|Buffers|Cached|SwapCached|Active|Inactive|Dirty|Writeback|Slab)' | head -5 && " +
+            "echo && echo 'Top Memory Processes:' && " +
+            "ps aux --sort=-%mem | head -4 | awk 'NR==1{print $0} NR>1{printf \"%-8s %6s %6s %s\\n\", $1, $3, $4, $11}'"
+        );
         return command.Result;
     }
 
