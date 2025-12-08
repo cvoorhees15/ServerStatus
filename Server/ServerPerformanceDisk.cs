@@ -30,7 +30,6 @@ class ServerPerformanceDisk : ServerPerformanceBase
             return "SSH client not connected";
         }
         
-        // Enhanced disk command with I/O statistics and usage
         var command = ServerConnection.Client.RunCommand(
             "echo 'Disk Usage:' && df -h | head -6 && " +
             "echo && echo 'Disk I/O Activity:' && " +

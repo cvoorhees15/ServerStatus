@@ -30,7 +30,6 @@ class ServerPerformanceNetwork : ServerPerformanceBase
             return "SSH client not connected";
         }
         
-        // Enhanced network command with connection stats and traffic
         var command = ServerConnection.Client.RunCommand(
             "echo 'Network Interfaces:' && ip -s link show | head -10 && " +
             "echo && echo 'Active Connections:' && " +

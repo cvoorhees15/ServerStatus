@@ -30,7 +30,6 @@ class ServerPerformanceMemory : ServerPerformanceBase
             return "SSH client not connected";
         }
         
-        // Enhanced memory command that provides dynamic information similar to top's CPU output
         var command = ServerConnection.Client.RunCommand(
             "echo 'Memory Usage:' && free -h | head -2 && " +
             "echo && echo 'Memory Pressure:' && " +

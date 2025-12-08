@@ -30,7 +30,6 @@ class ServerPerformanceCPU : ServerPerformanceBase
             return "SSH client not connected";
         }
         
-        // Enhanced CPU command that provides comprehensive CPU information
         var command = ServerConnection.Client.RunCommand(
             "echo 'CPU Usage:' && top -b -n 1 | grep '%Cpu(s)' && " +
             "echo && echo 'Load Average:' && uptime | awk '{print $8, $9, $10, $11, $12}' && " +

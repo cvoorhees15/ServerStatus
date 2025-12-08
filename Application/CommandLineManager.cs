@@ -154,7 +154,7 @@ class CommandLineManager
         var minSpacing = 4; // Minimum spacing between sections
         var availableContentHeight = height - headerHeight - footerHeight - sectionBorders - minSpacing;
         
-        // Calculate optimal lines per section (more generous allocation)
+        // Calculate optimal lines per section
         var linesPerSection = Math.Max(12, availableContentHeight / 4); // Increased minimum from 8 to 12
 
         sb.AppendLine(CreateHeader("SERVER STATUS DASHBOARD", timestamp, width));

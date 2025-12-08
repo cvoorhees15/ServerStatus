@@ -26,7 +26,6 @@ if (connection.Connect())
     var memory = new ServerPerformanceMemory((SshConnection)connection);
     var network = new ServerPerformanceNetwork((SshConnection)connection);
 
-    // Enable the dynamic display mode
     cli.StartDisplayMode();
 
     try
@@ -48,7 +47,6 @@ if (connection.Connect())
     }
     finally
     {
-        // Restore normal console mode when exiting
         cli.EndDisplayMode();
         connection.Disconnect();
     }
