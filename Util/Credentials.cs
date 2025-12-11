@@ -1,6 +1,9 @@
 using System;
 using System.IO;
 
+/// <summary>
+/// Provides static access to application credentials loaded from a JSON configuration file.
+/// </summary>
 public static class Credentials
 {
     public static string? Host       { get; private set; }
@@ -11,7 +14,9 @@ public static class Credentials
     public static int     SmtpPort   { get; private set; }
     public static string? AdminEmail { get; private set; }
 
-    // Load credentials from file
+    /// <summary>
+    /// Loads credentials from the ServerStatus.json file located in the user's .creds directory.
+    /// </summary>
     public static void Load()
     {
         string credsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".creds", "ServerStatus.json");

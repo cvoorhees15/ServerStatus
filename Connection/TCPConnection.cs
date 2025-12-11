@@ -1,6 +1,9 @@
 using System;
 using System.Net.Sockets;
 
+/// <summary>
+/// Represents a TCP connection to a server for basic connectivity testing.
+/// </summary>
 class TCPConnection : ConnectionBase
 {
     // Override Fields
@@ -43,12 +46,21 @@ class TCPConnection : ConnectionBase
         set { port = value; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TCPConnection"/> class with the specified host and port.
+    /// </summary>
+    /// <param name="host">The hostname or IP address of the server.</param>
+    /// <param name="port">The port number for the TCP connection.</param>
     public TCPConnection(string host, int port)
     {
         HostName = host;
         Port = port;
     }
 
+    /// <summary>
+    /// Attempts to establish a TCP connection to the server.
+    /// </summary>
+    /// <returns>True if the connection was successful, otherwise false.</returns>
     public override bool Connect()
     {
         try
@@ -88,6 +100,10 @@ class TCPConnection : ConnectionBase
         return connectionStatus;
     }
 
+    /// <summary>
+    /// Disconnects the TCP connection from the server.
+    /// </summary>
+    /// <returns>True if the disconnection was successful, otherwise false.</returns>
     public override bool Disconnect()
     {
         // TCP disconnection logic
@@ -105,6 +121,10 @@ class TCPConnection : ConnectionBase
         }
     }
 
+    /// <summary>
+    /// Attempts to reconnect to the server by disconnecting and then connecting again.
+    /// </summary>
+    /// <returns>True if the reconnection was successful, otherwise false.</returns>
     public override bool Reconnect()
     {
         // TCP reconnection logic

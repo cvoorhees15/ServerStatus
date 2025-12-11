@@ -1,3 +1,6 @@
+/// <summary>
+/// Handles network performance monitoring and reporting via SSH connection.
+/// </summary>
 class ServerPerformanceNetwork : ServerPerformanceBase
 {
     // Override Fields
@@ -17,12 +20,20 @@ class ServerPerformanceNetwork : ServerPerformanceBase
         set { metric = value; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServerPerformanceNetwork"/> class.
+    /// </summary>
+    /// <param name="connection">The SSH connection to use for monitoring network performance.</param>
     public ServerPerformanceNetwork(SshConnection connection)
     {
         ServerConnection = connection;
         Metric = ServerPerformanceMetrics.Network;
     }
 
+    /// <summary>
+    /// Retrieves current network statistics including interface status, active connections, and traffic data.
+    /// </summary>
+    /// <returns>A string containing formatted network performance data.</returns>
     public override string CheckPerformance()
     {
         if (ServerConnection.Client == null)
@@ -40,6 +51,11 @@ class ServerPerformanceNetwork : ServerPerformanceBase
         return command.Result;
     }
 
+    /// <summary>
+    /// Checks the network connections for a specific process by its ID.
+    /// </summary>
+    /// <param name="processId">The process ID to check.</param>
+    /// <returns>A string containing the network connection data for the specified process.</returns>
     public override string CheckProcess(int processId)
     {
         if (ServerConnection.Client == null)

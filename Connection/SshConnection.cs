@@ -3,6 +3,9 @@ using System.IO;
 using Org.BouncyCastle.Tls;
 using Renci.SshNet;
 
+/// <summary>
+/// Represents an SSH connection to a server for executing commands and retrieving data.
+/// </summary>
 class SshConnection : ConnectionBase
 {
     // Override Fields
@@ -52,6 +55,12 @@ class SshConnection : ConnectionBase
         set { password = value; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SshConnection"/> class with the specified credentials.
+    /// </summary>
+    /// <param name="host">The hostname or IP address of the server.</param>
+    /// <param name="user">The username for SSH authentication.</param>
+    /// <param name="password">The password for SSH authentication.</param>
     public SshConnection(string host, string user, string password)
     {
         HostName = host;
@@ -59,6 +68,10 @@ class SshConnection : ConnectionBase
         Password = password;
     }
 
+    /// <summary>
+    /// Attempts to establish an SSH connection to the server.
+    /// </summary>
+    /// <returns>True if the connection was successful, otherwise false.</returns>
     public override bool Connect()
     {
         try
@@ -101,6 +114,10 @@ class SshConnection : ConnectionBase
         return connectionStatus;
     }
 
+    /// <summary>
+    /// Disconnects the SSH connection from the server.
+    /// </summary>
+    /// <returns>True if the disconnection was successful, otherwise false.</returns>
     public override bool Disconnect()
     {
         // SSH disconnection logic
@@ -118,6 +135,10 @@ class SshConnection : ConnectionBase
         }
     }
 
+    /// <summary>
+    /// Attempts to reconnect to the server by disconnecting and then connecting again.
+    /// </summary>
+    /// <returns>True if the reconnection was successful, otherwise false.</returns>
     public override bool Reconnect()
     {
         // SSH reconnection logic

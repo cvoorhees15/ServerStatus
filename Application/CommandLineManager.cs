@@ -11,6 +11,9 @@ class CommandLineManager
     private readonly object _displayLock = new object();
     private bool _isDisplayMode = false;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CommandLineManager"/> class and displays the application banner.
+    /// </summary>
     public CommandLineManager()
     {
         Console.WriteLine(@"
@@ -23,6 +26,9 @@ class CommandLineManager
 ");
     }
 
+    /// <summary>
+    /// Displays the usage information for the ServerStatus application, including connection options, features, examples, and controls.
+    /// </summary>
     public void ShowUsage()
     {
         Console.WriteLine("Usage: ServerStatus [options]");
@@ -49,6 +55,11 @@ class CommandLineManager
 
     public bool QuitApp { get; private set; } = false;
 
+    /// <summary>
+    /// Parses the command line arguments and returns the appropriate connection object based on the specified options.
+    /// </summary>
+    /// <param name="args">The array of command line arguments.</param>
+    /// <returns>A <see cref="ConnectionBase"/> object representing the selected connection type.</returns>
     public ConnectionBase ParseArgs(string[] args)
     {
         // Check for help flags
@@ -76,6 +87,10 @@ class CommandLineManager
         }
     }
 
+    /// <summary>
+    /// Starts a background thread to handle keyboard input for quitting the application.
+    /// </summary>
+    /// <param name="cts">The cancellation token source used to cancel operations when quitting.</param>
     public void StartKeyboardHandling(CancellationTokenSource cts)
     {
         Logger.Instance.LogInfo("Enter 'q' to quit...");
@@ -105,6 +120,9 @@ class CommandLineManager
         inputThread.Start();
     }
 
+    /// <summary>
+    /// Starts the display mode by clearing the console and hiding the cursor for real-time metrics display.
+    /// </summary>
     public void StartDisplayMode()
     {
         lock (_displayLock)
@@ -115,6 +133,9 @@ class CommandLineManager
         }
     }
 
+    /// <summary>
+    /// Ends the display mode by showing the cursor and clearing the console.
+    /// </summary>
     public void EndDisplayMode()
     {
         lock (_displayLock)
@@ -125,6 +146,13 @@ class CommandLineManager
         }
     }
 
+    /// <summary>
+    /// Displays the server metrics in a formatted dashboard layout on the console.
+    /// </summary>
+    /// <param name="cpuMetrics">The CPU performance metrics as a string.</param>
+    /// <param name="memoryMetrics">The memory usage metrics as a string.</param>
+    /// <param name="diskMetrics">The disk usage metrics as a string.</param>
+    /// <param name="networkMetrics">The network activity metrics as a string.</param>
     public void DisplayServerMetrics(string cpuMetrics, string memoryMetrics, string diskMetrics, string networkMetrics)
     {
         lock (_displayLock)
@@ -140,6 +168,14 @@ class CommandLineManager
         }
     }
 
+    /// <summary>
+    /// Creates a formatted display string for the server metrics dashboard.
+    /// </summary>
+    /// <param name="cpuMetrics">The CPU performance metrics.</param>
+    /// <param name="memoryMetrics">The memory usage metrics.</param>
+    /// <param name="diskMetrics">The disk usage metrics.</param>
+    /// <param name="networkMetrics">The network activity metrics.</param>
+    /// <returns>A formatted string representing the complete dashboard display.</returns>
     private string CreateFormattedDisplay(string cpuMetrics, string memoryMetrics, string diskMetrics, string networkMetrics)
     {
         var sb = new StringBuilder();
@@ -177,6 +213,13 @@ class CommandLineManager
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Creates a formatted header string for the dashboard with title and timestamp.
+    /// </summary>
+    /// <param name="title">The title of the dashboard.</param>
+    /// <param name="timestamp">The current timestamp.</param>
+    /// <param name="width">The width of the console window.</param>
+    /// <returns>A formatted header string.</returns>
     private string CreateHeader(string title, string timestamp, int width)
     {
         var borderChar = '═';
@@ -195,6 +238,14 @@ class CommandLineManager
         return topBorder + Environment.NewLine + headerLine + Environment.NewLine + bottomBorder;
     }
 
+    /// <summary>
+    /// Creates a formatted section string for a specific metric category.
+    /// </summary>
+    /// <param name="title">The title of the section.</param>
+    /// <param name="content">The content to display in the section.</param>
+    /// <param name="width">The width of the console window.</param>
+    /// <param name="maxLines">The maximum number of lines to display in the section.</param>
+    /// <returns>A formatted section string.</returns>
     private string CreateSection(string title, string content, int width, int maxLines = 10)
     {
         var sb = new StringBuilder();
@@ -231,6 +282,12 @@ class CommandLineManager
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Processes the structured content lines to format them appropriately for display.
+    /// </summary>
+    /// <param name="lines">The array of content lines.</param>
+    /// <param name="maxWidth">The maximum width for each line.</param>
+    /// <returns>A list of processed and formatted content lines.</returns>
     private List<string> ProcessStructuredContent(string[] lines, int maxWidth)
     {
         var result = new List<string>();
@@ -273,6 +330,12 @@ class CommandLineManager
         return result;
     }
 
+    /// <summary>
+    /// Creates a formatted footer string for the dashboard.
+    /// </summary>
+    /// <param name="text">The text to display in the footer.</param>
+    /// <param name="width">The width of the console window.</param>
+    /// <returns>A formatted footer string.</returns>
     private string CreateFooter(string text, int width)
     {
         var padding = Math.Max(0, (width - text.Length - 2) / 2);
@@ -281,6 +344,9 @@ class CommandLineManager
                $"└{new string('─', width - 2)}┘";
     }
 
+    /// <summary>
+    /// Fills the remaining lines of the console with spaces to clear any leftover content.
+    /// </summary>
     private void FillRemainingLines()
     {
         var currentLine = Console.CursorTop;
@@ -292,6 +358,12 @@ class CommandLineManager
         }
     }
 
+    /// <summary>
+    /// Displays a progress bar with the specified label and percentage.
+    /// </summary>
+    /// <param name="label">The label for the progress bar.</param>
+    /// <param name="percentage">The percentage value (0-100).</param>
+    /// <param name="width">The width of the progress bar in characters.</param>
     public void DisplayProgressBar(string label, double percentage, int width = 50)
     {
         lock (_displayLock)
@@ -306,6 +378,11 @@ class CommandLineManager
         }
     }
 
+    /// <summary>
+    /// Shows a loading spinner with the specified message in a background task.
+    /// </summary>
+    /// <param name="message">The message to display with the spinner.</param>
+    /// <param name="cancellationToken">The cancellation token to stop the spinner.</param>
     public void ShowLoadingSpinner(string message, CancellationToken cancellationToken)
     {
         Task.Run(async () =>

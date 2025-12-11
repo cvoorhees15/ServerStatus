@@ -1,6 +1,9 @@
 using System;
 using System.Net.NetworkInformation;
 
+/// <summary>
+/// Represents a ping-based connection to test server availability.
+/// </summary>
 class PingConnection : ConnectionBase
 {
     // Override Fields
@@ -36,12 +39,21 @@ class PingConnection : ConnectionBase
         set { timeout = value; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PingConnection"/> class with the specified host and timeout.
+    /// </summary>
+    /// <param name="host">The hostname or IP address to ping.</param>
+    /// <param name="timeoutMs">The timeout in milliseconds for the ping operation.</param>
     public PingConnection(string host, int timeoutMs = 5000)
     {
         HostName = host;
         Timeout = timeoutMs;
     }
 
+    /// <summary>
+    /// Attempts to ping the host to establish connectivity.
+    /// </summary>
+    /// <returns>True if the ping was successful, otherwise false.</returns>
     public override bool Connect()
     {
         try
@@ -73,6 +85,10 @@ class PingConnection : ConnectionBase
         return connectionStatus;
     }
 
+    /// <summary>
+    /// Disconnects the ping connection by updating the status.
+    /// </summary>
+    /// <returns>True if the disconnection was successful, otherwise false.</returns>
     public override bool Disconnect()
     {
         // Ping is stateless, so just update status
@@ -89,6 +105,10 @@ class PingConnection : ConnectionBase
         }
     }
 
+    /// <summary>
+    /// Attempts to reconnect by disconnecting and then connecting again.
+    /// </summary>
+    /// <returns>True if the reconnection was successful, otherwise false.</returns>
     public override bool Reconnect()
     {
         // Ping reconnection logic

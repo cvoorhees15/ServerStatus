@@ -1,3 +1,6 @@
+/// <summary>
+/// Handles memory performance monitoring and reporting via SSH connection.
+/// </summary>
 class ServerPerformanceMemory : ServerPerformanceBase
 {
     // Override Fields
@@ -17,12 +20,20 @@ class ServerPerformanceMemory : ServerPerformanceBase
         set { metric = value; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServerPerformanceMemory"/> class.
+    /// </summary>
+    /// <param name="connection">The SSH connection to use for monitoring memory performance.</param>
     public ServerPerformanceMemory(SshConnection connection)
     {
         ServerConnection = connection;
         Metric = ServerPerformanceMetrics.Memory;
     }
 
+    /// <summary>
+    /// Retrieves current memory usage statistics including free memory, buffers, and top memory-consuming processes.
+    /// </summary>
+    /// <returns>A string containing formatted memory performance data.</returns>
     public override string CheckPerformance()
     {
         if (ServerConnection.Client == null)
@@ -40,6 +51,11 @@ class ServerPerformanceMemory : ServerPerformanceBase
         return command.Result;
     }
 
+    /// <summary>
+    /// Checks the memory usage for a specific process by its ID.
+    /// </summary>
+    /// <param name="processId">The process ID to check.</param>
+    /// <returns>A string containing the memory usage data for the specified process.</returns>
     public override string CheckProcess(int processId)
     {
         if (ServerConnection.Client == null)

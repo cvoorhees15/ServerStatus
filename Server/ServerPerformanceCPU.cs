@@ -1,3 +1,6 @@
+/// <summary>
+/// Handles CPU performance monitoring and reporting via SSH connection.
+/// </summary>
 class ServerPerformanceCPU : ServerPerformanceBase
 {
     // Override Fields
@@ -17,12 +20,20 @@ class ServerPerformanceCPU : ServerPerformanceBase
         set { metric = value; }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServerPerformanceCPU"/> class.
+    /// </summary>
+    /// <param name="connection">The SSH connection to use for monitoring CPU performance.</param>
     public ServerPerformanceCPU(SshConnection connection)
     {
         ServerConnection = connection;
         Metric = ServerPerformanceMetrics.CPU;
     }
 
+    /// <summary>
+    /// Retrieves current CPU usage statistics including load average and top CPU-consuming processes.
+    /// </summary>
+    /// <returns>A string containing formatted CPU performance data.</returns>
     public override string CheckPerformance()
     {
         if (ServerConnection.Client == null)
@@ -39,6 +50,11 @@ class ServerPerformanceCPU : ServerPerformanceBase
         return command.Result;
     }
 
+    /// <summary>
+    /// Checks the CPU usage for a specific process by its ID.
+    /// </summary>
+    /// <param name="processId">The process ID to check.</param>
+    /// <returns>A string containing the CPU usage data for the specified process.</returns>
     public override string CheckProcess(int processId)
     {
         if (ServerConnection.Client == null)
