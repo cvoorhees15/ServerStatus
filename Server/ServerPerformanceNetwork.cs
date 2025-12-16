@@ -6,6 +6,7 @@ class ServerPerformanceNetwork : ServerPerformanceBase
     // Override Fields
     private SshConnection? serverConnection;
     private ServerPerformanceMetrics metric;
+    private OperatingSystem os;
 
     // Properties
     protected override SshConnection ServerConnection
@@ -20,14 +21,21 @@ class ServerPerformanceNetwork : ServerPerformanceBase
         set { metric = value; }
     }
 
+    protected override OperatingSystem OS
+    {
+        get { return os; }
+        set { os = value; }
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ServerPerformanceNetwork"/> class.
     /// </summary>
     /// <param name="connection">The SSH connection to use for monitoring network performance.</param>
-    public ServerPerformanceNetwork(SshConnection connection)
+    public ServerPerformanceNetwork(SshConnection connection, string os)
     {
         ServerConnection = connection;
         Metric = ServerPerformanceMetrics.Network;
+        SetOS(os);
     }
 
     /// <summary>
@@ -40,14 +48,36 @@ class ServerPerformanceNetwork : ServerPerformanceBase
         {
             return "SSH client not connected";
         }
+
+        string commandString = OS switch
+        {
+            OperatingSystem.Linux   => "echo 'Network Interfaces:' && ip -s link show | head -10 && " +
+                                       "echo && echo 'Active Connections:' && " +
+                                       "ss -tulnp | head -6 && " +
+                                       "echo && echo 'Network Traffic:' && " +
+                                       "cat /proc/net/dev | head -4 | awk 'NR>2 {printf \"%-10s RX: %s TX: %s\\n\", $1, $2, $10}'",
+
+            OperatingSystem.Windows => "echo 'Network Interfaces:' && ipconfig /all && " +
+                                       "echo && echo 'Active Connections:' && " +
+                                       "netstat -an | findstr LISTENING | head -6 && " +
+                                       "echo && echo 'Network Traffic:' && " +
+                                       "powershell -command \"Get-NetAdapterStatistics | Select Name,ReceivedBytes,SentBytes\"",
+
+            OperatingSystem.Mac     => "echo 'Network Interfaces:' && ifconfig && " +
+                                       "echo && echo 'Active Connections:' && " +
+                                       "netstat -tulnp | head -6 && " +
+                                       "echo && echo 'Network Traffic:' && " +
+                                       "netstat -i",
+
+                                    // default to linux
+            _                       => "echo 'Network Interfaces:' && ip -s link show | head -10 && " +
+                                       "echo && echo 'Active Connections:' && " +
+                                       "ss -tulnp | head -6 && " +
+                                       "echo && echo 'Network Traffic:' && " +
+                                       "cat /proc/net/dev | head -4 | awk 'NR>2 {printf \"%-10s RX: %s TX: %s\\n\", $1, $2, $10}'"
+        };
         
-        var command = ServerConnection.Client.RunCommand(
-            "echo 'Network Interfaces:' && ip -s link show | head -10 && " +
-            "echo && echo 'Active Connections:' && " +
-            "ss -tulnp | head -6 && " +
-            "echo && echo 'Network Traffic:' && " +
-            "cat /proc/net/dev | head -4 | awk 'NR>2 {printf \"%-10s RX: %s TX: %s\\n\", $1, $2, $10}'"
-        );
+        var command = ServerConnection.Client.RunCommand(commandString);
         return command.Result;
     }
 

@@ -21,10 +21,10 @@ cli.StartKeyboardHandling(cts);
 if (connection.Connect())
 {
     // Create server performance objects
-    var cpu = new ServerPerformanceCPU((SshConnection)connection);
-    var disk = new ServerPerformanceDisk((SshConnection)connection);
-    var memory = new ServerPerformanceMemory((SshConnection)connection);
-    var network = new ServerPerformanceNetwork((SshConnection)connection);
+    var cpu = new ServerPerformanceCPU((SshConnection)connection, Credentials.OperatingSystem!);
+    var disk = new ServerPerformanceDisk((SshConnection)connection, Credentials.OperatingSystem!);
+    var memory = new ServerPerformanceMemory((SshConnection)connection, Credentials.OperatingSystem!);
+    var network = new ServerPerformanceNetwork((SshConnection)connection, Credentials.OperatingSystem!);
 
     cli.StartDisplayMode();
 

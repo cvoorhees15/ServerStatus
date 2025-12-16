@@ -6,6 +6,7 @@ class ServerPerformanceMemory : ServerPerformanceBase
     // Override Fields
     private SshConnection? serverConnection;
     private ServerPerformanceMetrics metric;
+    private OperatingSystem os;
 
     // Properties
     protected override SshConnection ServerConnection
@@ -20,14 +21,21 @@ class ServerPerformanceMemory : ServerPerformanceBase
         set { metric = value; }
     }
 
+    protected override OperatingSystem OS
+    {
+        get { return os; }
+        set { os = value; }
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ServerPerformanceMemory"/> class.
     /// </summary>
     /// <param name="connection">The SSH connection to use for monitoring memory performance.</param>
-    public ServerPerformanceMemory(SshConnection connection)
+    public ServerPerformanceMemory(SshConnection connection, string os)
     {
         ServerConnection = connection;
         Metric = ServerPerformanceMetrics.Memory;
+        SetOS(os);
     }
 
     /// <summary>
@@ -40,14 +48,32 @@ class ServerPerformanceMemory : ServerPerformanceBase
         {
             return "SSH client not connected";
         }
-        
-        var command = ServerConnection.Client.RunCommand(
-            "echo 'Memory Usage:' && free -h | head -2 && " +
-            "echo && echo 'Memory Pressure:' && " +
-            "cat /proc/meminfo | grep -E '^(MemAvailable|Buffers|Cached|SwapCached|Active|Inactive|Dirty|Writeback|Slab)' | head -5 && " +
-            "echo && echo 'Top Memory Processes:' && " +
-            "ps aux --sort=-%mem | head -4 | awk 'NR==1{print $0} NR>1{printf \"%-8s %6s %6s %s\\n\", $1, $3, $4, $11}'"
-        );
+
+        string commandString = OS switch
+        {
+            OperatingSystem.Linux   => "echo 'Memory Usage:' && free -h | head -2 && " +
+                                       "echo && echo 'Memory Pressure:' && " +
+                                       "cat /proc/meminfo | grep -E '^(MemAvailable|Buffers|Cached|SwapCached|Active|Inactive|Dirty|Writeback|Slab)' | head -5 && " +
+                                       "echo && echo 'Top Memory Processes:' && " +
+                                       "ps aux --sort=-%mem | head -4 | awk 'NR==1{print $0} NR>1{printf \"%-8s %6s %6s %s\\n\", $1, $3, $4, $11}'",
+
+            OperatingSystem.Windows => "echo 'Memory Usage:' && wmic OS get FreePhysicalMemory,TotalVisibleMemorySize /value && " +
+                                       "echo && echo 'Top Memory Processes:' && " +
+                                       "powershell -command \"Get-Process | Sort WS -Descending | Select -First 5 Name,WS\"",
+
+            OperatingSystem.Mac     => "echo 'Memory Usage:' && vm_stat && " +
+                                       "echo && echo 'Top Memory Processes:' && " +
+                                       "ps aux -m | head -5",
+
+                                    // default to linux
+            _                       => "echo 'Memory Usage:' && free -h | head -2 && " +
+                                       "echo && echo 'Memory Pressure:' && " +
+                                       "cat /proc/meminfo | grep -E '^(MemAvailable|Buffers|Cached|SwapCached|Active|Inactive|Dirty|Writeback|Slab)' | head -5 && " +
+                                       "echo && echo 'Top Memory Processes:' && " +
+                                       "ps aux --sort=-%mem | head -4 | awk 'NR==1{print $0} NR>1{printf \"%-8s %6s %6s %s\\n\", $1, $3, $4, $11}'"
+        };
+
+        var command = ServerConnection.Client.RunCommand(commandString);
         return command.Result;
     }
 

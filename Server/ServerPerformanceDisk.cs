@@ -6,6 +6,7 @@ class ServerPerformanceDisk : ServerPerformanceBase
     // Override Fields
     private SshConnection? serverConnection;
     private ServerPerformanceMetrics metric;
+    private OperatingSystem os;
 
     // Properties
     protected override SshConnection ServerConnection
@@ -20,14 +21,21 @@ class ServerPerformanceDisk : ServerPerformanceBase
         set { metric = value; }
     }
 
+    protected override OperatingSystem OS
+    {
+        get { return os; }
+        set { os = value; }
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ServerPerformanceDisk"/> class.
     /// </summary>
     /// <param name="connection">The SSH connection to use for monitoring disk performance.</param>
-    public ServerPerformanceDisk(SshConnection connection)
+    public ServerPerformanceDisk(SshConnection connection, string os)
     {
         ServerConnection = connection;
         Metric = ServerPerformanceMetrics.Disk;
+        SetOS(os);
     }
 
     /// <summary>
@@ -40,12 +48,28 @@ class ServerPerformanceDisk : ServerPerformanceBase
         {
             return "SSH client not connected";
         }
+
+        string commandString = OS switch
+        {
+            OperatingSystem.Linux   => "echo 'Disk Usage:' && df -h | head -6 && " +
+                                       "echo && echo 'Disk I/O Activity:' && " +
+                                       "iostat -x 1 1 | tail -n +4 | head -5 2>/dev/null || echo 'iostat not available - install sysstat package'",
+
+            OperatingSystem.Windows => "echo 'Disk Usage:' && wmic logicaldisk get caption,size,freespace /value && " +
+                                       "echo && echo 'Disk I/O Activity:' && " +
+                                       "powershell -command \"Get-Counter '\\PhysicalDisk(*)\\Disk Read Bytes/sec', '\\PhysicalDisk(*)\\Disk Write Bytes/sec' -SampleInterval 1 -MaxSamples 1\"",
+
+            OperatingSystem.Mac     => "echo 'Disk Usage:' && df -h && " +
+                                       "echo && echo 'Disk I/O Activity:' && " +
+                                       "iostat -d 1 1",
+
+                                    // default to linux
+            _                       => "echo 'Disk Usage:' && df -h | head -6 && " +
+                                       "echo && echo 'Disk I/O Activity:' && " +
+                                       "iostat -x 1 1 | tail -n +4 | head -5 2>/dev/null || echo 'iostat not available - install sysstat package'"
+        };
         
-        var command = ServerConnection.Client.RunCommand(
-            "echo 'Disk Usage:' && df -h | head -6 && " +
-            "echo && echo 'Disk I/O Activity:' && " +
-            "iostat -x 1 1 | tail -n +4 | head -5 2>/dev/null || echo 'iostat not available - install sysstat package'"
-        );
+        var command = ServerConnection.Client.RunCommand(commandString);
         return command.Result;
     }
 
