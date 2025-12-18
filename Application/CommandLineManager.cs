@@ -16,14 +16,7 @@ class CommandLineManager
     /// </summary>
     public CommandLineManager()
     {
-        Console.WriteLine(@"
-  ____                             ____  _        _             
- / ___|  ___ _ ____   _____ _ __  / ___|| |_ __ _| |_ _   _ ___ 
- \___ \ / _ \ '__\ \ / / _ \ '__| \___ \| __/ _` | __| | | / __|
-  ___) |  __/ |   \ V /  __/ |     ___) | || (_| | |_| |_| \__ \
- |____/ \___|_|    \_/ \___|_|    |____/ \__\__,_|\__|\__,_|___/
-
-");
+        Logger.Instance.LogInfo("Welcome to Server Status");
     }
 
     /// <summary>
@@ -184,8 +177,8 @@ class CommandLineManager
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
         // Calculate available space for content
-        var headerHeight = 4; // Header takes ~4 lines
-        var footerHeight = 4; // Footer takes ~4 lines  
+        var headerHeight = 8; // Header takes ~8 lines
+        var footerHeight = 4; // Footer takes ~4 lines
         var sectionBorders = 8; // Top and bottom borders for 4 sections (2 lines each)
         var minSpacing = 4; // Minimum spacing between sections
         var availableContentHeight = height - headerHeight - footerHeight - sectionBorders - minSpacing;
@@ -193,7 +186,15 @@ class CommandLineManager
         // Calculate optimal lines per section
         var linesPerSection = Math.Max(12, availableContentHeight / 4); // Increased minimum from 8 to 12
 
-        sb.AppendLine(CreateHeader("SERVER STATUS DASHBOARD", timestamp, width));
+        sb.AppendLine(@"
+  ____                             ____  _        _
+ / ___|  ___ _ ____   _____ _ __  / ___|| |_ __ _| |_ _   _ ___
+ \___ \ / _ \ '__\ \ / / _ \ '__| \___ \| __/ _` | __| | | / __|
+  ___) |  __/ |   \ V /  __/ |     ___) | || (_| | |_| |_| \__ \
+ |____/ \___|_|    \_/ \___|_|    |____/ \__\__,_|\__|\__,_|___/
+ 
+");
+        sb.AppendLine($"Timestamp: {timestamp}");
         sb.AppendLine();
 
         sb.AppendLine(CreateSection("CPU PERFORMANCE", cpuMetrics, width, linesPerSection));
