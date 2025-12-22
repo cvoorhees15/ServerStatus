@@ -24,61 +24,10 @@ class CommandLineManager
     /// </summary>
     public void ShowUsage()
     {
-        Console.WriteLine("Usage: ServerStatus [options]");
-        Console.WriteLine();
-        Console.WriteLine("Connection Options:");
-        Console.WriteLine("  --ssh         Use SSH connection (default)");
-        Console.WriteLine("  --tcp         Use TCP connection");
-        Console.WriteLine("  --ping        Use ping connection");
-        Console.WriteLine();
-        Console.WriteLine("Features:");
-        Console.WriteLine("  • Real-time streaming dashboard (btop-style)");
-        Console.WriteLine("  • Live server performance metrics");
-        Console.WriteLine("  • Auto-refreshing display every second");
-        Console.WriteLine();
-        Console.WriteLine("Examples:");
-        Console.WriteLine("  ServerStatus --ssh             # Stream server metrics via SSH");
-        Console.WriteLine("  ServerStatus --tcp             # Stream server metrics via TCP");
-        Console.WriteLine("  ServerStatus                   # Use default SSH connection");
-        Console.WriteLine();
-        Console.WriteLine("Controls:");
-        Console.WriteLine("  q             Quit application");
-        Console.WriteLine();
+
     }
 
     public bool QuitApp { get; private set; } = false;
-
-    /// <summary>
-    /// Parses the command line arguments and returns the appropriate connection object based on the specified options.
-    /// </summary>
-    /// <param name="args">The array of command line arguments.</param>
-    /// <returns>A <see cref="ConnectionBase"/> object representing the selected connection type.</returns>
-    public ConnectionBase ParseArgs(string[] args)
-    {
-        // Check for help flags
-        if (args.Contains("--help") || args.Contains("-h"))
-        {
-            ShowUsage();
-            Environment.Exit(0);
-        }
-
-        if (args.Contains("--tcp"))
-        {
-            return new TCPConnection(Credentials.Host!, Credentials.TcpPort);
-        }
-        else if (args.Contains("--ssh"))
-        {
-            return new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
-        }
-        else if (args.Contains("--ping"))
-        {
-            return new PingConnection(Credentials.Host!);
-        }
-        else // default to ssh for now
-        {
-            return new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
-        }
-    }
 
     /// <summary>
     /// Starts a background thread to handle keyboard input for quitting the application.

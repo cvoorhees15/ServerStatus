@@ -10,9 +10,9 @@ using ServerStatus.Util;
 Credentials.Load();
 Emailer.Load(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Credentials.Password!);
 
-// Translate CLI args
+// Create CLI and connection instances
 var cli = new CommandLineManager();
-var connection = cli.ParseArgs(args);
+var connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
 
 // Handle CLI keyboard interrupt
 var cts = new CancellationTokenSource();
@@ -21,10 +21,10 @@ cli.StartKeyboardHandling(cts);
 if (connection.Connect())
 {
     // Create server performance objects
-    var cpu = new ServerPerformanceCPU((SshConnection)connection, Credentials.OperatingSystem!);
-    var disk = new ServerPerformanceDisk((SshConnection)connection, Credentials.OperatingSystem!);
-    var memory = new ServerPerformanceMemory((SshConnection)connection, Credentials.OperatingSystem!);
-    var network = new ServerPerformanceNetwork((SshConnection)connection, Credentials.OperatingSystem!);
+    var cpu = new ServerPerformanceCPU(connection, Credentials.OperatingSystem!);
+    var disk = new ServerPerformanceDisk(connection, Credentials.OperatingSystem!);
+    var memory = new ServerPerformanceMemory(connection, Credentials.OperatingSystem!);
+    var network = new ServerPerformanceNetwork(connection, Credentials.OperatingSystem!);
 
     cli.StartDisplayMode();
 
