@@ -72,6 +72,9 @@ class CommandLineManager
             _isDisplayMode = true;
             Console.Clear();
             Console.CursorVisible = false;
+
+            // Enable buffered logging to prevent console interference
+            Logger.Instance.EnableDisplayMode();
         }
     }
 
@@ -85,6 +88,9 @@ class CommandLineManager
             _isDisplayMode = false;
             Console.CursorVisible = true;
             Console.Clear();
+
+            // Disable buffered logging to return to normal console output
+            Logger.Instance.DisableDisplayMode();
         }
     }
 
@@ -95,7 +101,8 @@ class CommandLineManager
     /// <param name="memoryMetrics">The memory usage metrics as a string.</param>
     /// <param name="diskMetrics">The disk usage metrics as a string.</param>
     /// <param name="networkMetrics">The network activity metrics as a string.</param>
-    public void DisplayServerMetrics(string cpuMetrics, string memoryMetrics, string diskMetrics, string networkMetrics)
+    /// <param name="latency">The server latency in milliseconds.</param>
+    public void DisplayServerMetrics(string cpuMetrics, string memoryMetrics, string diskMetrics, string networkMetrics, long latency)
     {
         lock (_displayLock)
         {
@@ -103,7 +110,7 @@ class CommandLineManager
 
             Console.SetCursorPosition(0, 0);
 
-            var displayContent = CreateFormattedDisplay(cpuMetrics, memoryMetrics, diskMetrics, networkMetrics);
+            var displayContent = CreateFormattedDisplay(cpuMetrics, memoryMetrics, diskMetrics, networkMetrics, latency);
             Console.Write(displayContent);
 
             FillRemainingLines();
@@ -117,8 +124,9 @@ class CommandLineManager
     /// <param name="memoryMetrics">The memory usage metrics.</param>
     /// <param name="diskMetrics">The disk usage metrics.</param>
     /// <param name="networkMetrics">The network activity metrics.</param>
+    /// <param name="latency">The server latency in milliseconds.</param>
     /// <returns>A formatted string representing the complete dashboard display.</returns>
-    private string CreateFormattedDisplay(string cpuMetrics, string memoryMetrics, string diskMetrics, string networkMetrics)
+    private string CreateFormattedDisplay(string cpuMetrics, string memoryMetrics, string diskMetrics, string networkMetrics, long latency)
     {
         var sb = new StringBuilder();
         var width = Console.WindowWidth;
@@ -128,12 +136,13 @@ class CommandLineManager
         // Calculate available space for content
         var headerHeight = 8; // Header takes ~8 lines
         var footerHeight = 4; // Footer takes ~4 lines
-        var sectionBorders = 8; // Top and bottom borders for 4 sections (2 lines each)
-        var minSpacing = 4; // Minimum spacing between sections
-        var availableContentHeight = height - headerHeight - footerHeight - sectionBorders - minSpacing;
-        
-        // Calculate optimal lines per section
-        var linesPerSection = Math.Max(12, availableContentHeight / 4); // Increased minimum from 8 to 12
+        var logsPanelHeight = 10; // Logs panel takes ~10 lines
+        var sectionBorders = 10; // Top and bottom borders for 5 sections (2 lines each)
+        var minSpacing = 5; // Minimum spacing between sections
+        var availableContentHeight = height - headerHeight - footerHeight - logsPanelHeight - sectionBorders - minSpacing;
+
+        // Calculate optimal lines per section (divided by 4, not including logs)
+        var linesPerSection = Math.Max(10, availableContentHeight / 4);
 
         sb.AppendLine(@"
   ____                             ____  _        _
@@ -141,9 +150,9 @@ class CommandLineManager
  \___ \ / _ \ '__\ \ / / _ \ '__| \___ \| __/ _` | __| | | / __|
   ___) |  __/ |   \ V /  __/ |     ___) | || (_| | |_| |_| \__ \
  |____/ \___|_|    \_/ \___|_|    |____/ \__\__,_|\__|\__,_|___/
- 
+
 ");
-        sb.AppendLine($"Timestamp: {timestamp}");
+        sb.AppendLine($"Timestamp: {timestamp}  |  Latency: {latency}ms");
         sb.AppendLine();
 
         sb.AppendLine(CreateSection("CPU PERFORMANCE", cpuMetrics, width, linesPerSection));
@@ -156,6 +165,9 @@ class CommandLineManager
         sb.AppendLine();
 
         sb.AppendLine(CreateSection("NETWORK ACTIVITY", networkMetrics, width, linesPerSection));
+        sb.AppendLine();
+
+        sb.AppendLine(CreateLogsSection(width));
         sb.AppendLine();
 
         sb.AppendLine(CreateFooter("Press 'q' to quit", width));
@@ -278,6 +290,48 @@ class CommandLineManager
         }
         
         return result;
+    }
+
+    /// <summary>
+    /// Creates a formatted logs section displaying recent log entries from the Logger.
+    /// </summary>
+    /// <param name="width">The width of the console window.</param>
+    /// <returns>A formatted logs section string.</returns>
+    private string CreateLogsSection(int width)
+    {
+        var sb = new StringBuilder();
+        var maxLogLines = 8; // Fixed number of log lines
+        var logs = Logger.Instance.GetRecentLogs(maxLogLines);
+
+        var titleLine = $"┌─ RECENT LOGS {new string('─', Math.Max(0, width - 16))}┐";
+        sb.AppendLine(titleLine);
+
+        // Always display exactly maxLogLines lines
+        for (int i = 0; i < maxLogLines; i++)
+        {
+            if (i < logs.Count)
+            {
+                var displayStr = logs[i].ToDisplayString();
+
+                // Truncate if too long
+                if (displayStr.Length > width - 4)
+                {
+                    displayStr = displayStr[..(width - 7)] + "...";
+                }
+
+                sb.AppendLine($"│ {displayStr.PadRight(width - 4)} │");
+            }
+            else
+            {
+                // Pad with empty lines to maintain fixed height
+                sb.AppendLine($"│ {new string(' ', width - 4)} │");
+            }
+        }
+
+        var bottomLine = $"└{new string('─', width - 2)}┘";
+        sb.AppendLine(bottomLine);
+
+        return sb.ToString();
     }
 
     /// <summary>
