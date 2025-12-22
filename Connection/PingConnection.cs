@@ -13,6 +13,7 @@ class PingConnection : ConnectionBase
     // New Fields
     private string hostName = "";
     private int timeout = 5000; // 5 seconds default
+    private long latency = 0;
 
     // Properties
     protected override ConnectionBaseTypes ConnectionType
@@ -37,6 +38,12 @@ class PingConnection : ConnectionBase
     {
         get { return timeout; }
         set { timeout = value; }
+    }
+
+    public long Latency
+    {
+        get { return latency; }
+        set { latency = value; }
     }
 
     /// <summary>
@@ -67,6 +74,7 @@ class PingConnection : ConnectionBase
                 if (reply.Status == IPStatus.Success)
                 {
                     Logger.Instance.LogInfo($"Ping successful. Round-trip time: {reply.RoundtripTime}ms");
+                    Latency = reply.RoundtripTime;
                     connectionStatus = true;
                 }
                 else

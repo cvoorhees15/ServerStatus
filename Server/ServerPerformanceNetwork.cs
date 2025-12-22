@@ -8,11 +8,20 @@ class ServerPerformanceNetwork : ServerPerformanceBase
     private ServerPerformanceMetrics metric;
     private OperatingSystem os;
 
+    // New fields
+    private PingConnection? pingConnection;
+
     // Properties
     protected override SshConnection ServerConnection
     {
         get { return serverConnection!; }
         set { serverConnection = value; }
+    }
+
+    protected PingConnection Pinger
+    {
+        get { return pingConnection!; }
+        set { pingConnection = value; }
     }
 
     protected override ServerPerformanceMetrics Metric
@@ -30,10 +39,13 @@ class ServerPerformanceNetwork : ServerPerformanceBase
     /// <summary>
     /// Initializes a new instance of the <see cref="ServerPerformanceNetwork"/> class.
     /// </summary>
-    /// <param name="connection">The SSH connection to use for monitoring network performance.</param>
-    public ServerPerformanceNetwork(SshConnection connection, string os)
+    /// <param name="ssh">The SSH connection to use for monitoring network performance.</param>
+    /// <param name="ping">The ping connection to use for monitoring server connectivity.</param>
+    /// <param name="os">The operating system of the server.</param>
+    public ServerPerformanceNetwork(SshConnection ssh, PingConnection ping, string os)
     {
-        ServerConnection = connection;
+        ServerConnection = ssh;
+        Pinger = ping;
         Metric = ServerPerformanceMetrics.Network;
         SetOS(os);
     }
@@ -94,5 +106,19 @@ class ServerPerformanceNetwork : ServerPerformanceBase
         }
         var command = ServerConnection.Client.RunCommand($"ss -p | grep {processId}");
         return command.Result;
+    }
+
+    /// <summary>
+    /// Check the latency of the server connection.
+    /// </summary>
+    /// <returns>Server connection latency in ms</returns>
+    public long CheckConnectivity()
+    {
+        if (Pinger.Connect())
+        {
+            return Pinger.Latency;
+        }
+
+        return -1;
     }
 }

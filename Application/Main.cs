@@ -12,19 +12,20 @@ Emailer.Load(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Cre
 
 // Create CLI and connection instances
 var cli = new CommandLineManager();
-var connection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
+var sshConnection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
+var pingConnection = new PingConnection(Credentials.Host!);
 
 // Handle CLI keyboard interrupt
 var cts = new CancellationTokenSource();
 cli.StartKeyboardHandling(cts);
 
-if (connection.Connect())
+if (sshConnection.Connect())
 {
     // Create server performance objects
-    var cpu = new ServerPerformanceCPU(connection, Credentials.OperatingSystem!);
-    var disk = new ServerPerformanceDisk(connection, Credentials.OperatingSystem!);
-    var memory = new ServerPerformanceMemory(connection, Credentials.OperatingSystem!);
-    var network = new ServerPerformanceNetwork(connection, Credentials.OperatingSystem!);
+    var cpu = new ServerPerformanceCPU(sshConnection, Credentials.OperatingSystem!);
+    var disk = new ServerPerformanceDisk(sshConnection, Credentials.OperatingSystem!);
+    var memory = new ServerPerformanceMemory(sshConnection, Credentials.OperatingSystem!);
+    var network = new ServerPerformanceNetwork(sshConnection, pingConnection, Credentials.OperatingSystem!);
 
     cli.StartDisplayMode();
 
@@ -39,8 +40,11 @@ if (connection.Connect())
             var memoryMetrics = memory.CheckPerformance();
             var networkMetrics = network.CheckPerformance();
 
+            // Poll server connectivity
+            var latency = network.CheckConnectivity();
+
             // Display metrics in real-time dashboard
-            cli.DisplayServerMetrics(cpuMetrics, memoryMetrics, diskMetrics, networkMetrics);
+            cli.DisplayServerMetrics(cpuMetrics, memoryMetrics, diskMetrics, networkMetrics, latency);
 
             Thread.Sleep(1000);
         }
@@ -48,7 +52,7 @@ if (connection.Connect())
     finally
     {
         cli.EndDisplayMode();
-        connection.Disconnect();
+        sshConnection.Disconnect();
     }
 }
 else
