@@ -1,7 +1,6 @@
 class CommandLineManager
 {
     private readonly object _displayLock = new object();
-    private bool _isDisplayMode = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandLineManager"/> class and displays the application banner.
@@ -55,18 +54,14 @@ class CommandLineManager
     }
 
     /// <summary>
-    /// Starts the display mode by clearing the console and hiding the cursor for real-time metrics display.
+    /// Starts the display by clearing the console and hiding the cursor for real-time metrics display.
     /// </summary>
     public void StartDisplay()
     {
         lock (_displayLock)
         {
-            _isDisplayMode = true;
             Console.Clear();
             Console.CursorVisible = false;
-
-            // Enable buffered logging to prevent console interference
-            Logger.Instance.EnableDisplayMode();
         }
     }
 
@@ -77,12 +72,8 @@ class CommandLineManager
     {
         lock (_displayLock)
         {
-            _isDisplayMode = false;
-            Console.CursorVisible = true;
             Console.Clear();
-
-            // Disable buffered logging to return to normal console output
-            Logger.Instance.DisableDisplayMode();
+            Console.CursorVisible = true;
         }
     }
 
@@ -98,8 +89,6 @@ class CommandLineManager
     {
         lock (_displayLock)
         {
-            if (!_isDisplayMode) return;
-
             Console.SetCursorPosition(0, 0);
 
             WriteColoredDisplay(cpuMetrics, memoryMetrics, diskMetrics, networkMetrics, latency);
@@ -377,8 +366,6 @@ class CommandLineManager
     {
         lock (_displayLock)
         {
-            if (!_isDisplayMode) return;
-
             var filled = (int)(percentage / 100.0 * width);
             var empty = width - filled;
 
@@ -403,11 +390,8 @@ class CommandLineManager
             {
                 lock (_displayLock)
                 {
-                    if (_isDisplayMode)
-                    {
-                        Console.SetCursorPosition(0, Console.WindowHeight - 1);
-                        Console.Write($"{message} {spinnerChars[index % spinnerChars.Length]}");
-                    }
+                    Console.SetCursorPosition(0, Console.WindowHeight - 1);
+                    Console.Write($"{message} {spinnerChars[index % spinnerChars.Length]}");
                 }
 
                 index++;

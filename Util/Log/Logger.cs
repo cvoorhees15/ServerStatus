@@ -10,9 +10,6 @@ public class Logger
     private readonly List<LogEntry> _logBuffer = new List<LogEntry>();
     private const int MAX_BUFFER_SIZE = 100;
 
-    // Display mode flag - when true, suppresses console output
-    private bool _displayModeActive = false;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="Logger"/> class.
     /// </summary>
@@ -33,28 +30,6 @@ public class Logger
                 }
             }
             return _instance;
-        }
-    }
-
-    /// <summary>
-    /// Enables display mode, which suppresses console output and only buffers logs.
-    /// </summary>
-    public void EnableDisplayMode()
-    {
-        lock (_lock)
-        {
-            _displayModeActive = true;
-        }
-    }
-
-    /// <summary>
-    /// Disables display mode, returning to normal console output behavior.
-    /// </summary>
-    public void DisableDisplayMode()
-    {
-        lock (_lock)
-        {
-            _displayModeActive = false;
         }
     }
 
@@ -101,26 +76,8 @@ public class Logger
     /// <param name="message">The log message content.</param>
     private void LogWithLevel(LogLevel level, string message)
     {
-        // Always add to buffer for history
+        // Add to buffer for TUI window display
         AddToBuffer(level, message);
-
-        // Only write to console if NOT in display mode
-        lock (_lock)
-        {
-            if (!_displayModeActive)
-            {
-                Console.WriteLine($"[{DateTime.Now}] {message}\n");
-            }
-        }
-    }
-
-    /// <summary>
-    /// Logs a message to the console with a timestamp.
-    /// </summary>
-    /// <param name="message">The message to log.</param>
-    public void Log(string message)
-    {
-        LogWithLevel(LogLevel.Info, message);
     }
 
     /// <summary>
@@ -129,7 +86,7 @@ public class Logger
     /// <param name="message">The informational message to log.</param>
     public void LogInfo(string message)
     {
-        LogWithLevel(LogLevel.Info, $"INFO: {message}");
+        LogWithLevel(LogLevel.Info, message);
     }
 
     /// <summary>
@@ -138,6 +95,6 @@ public class Logger
     /// <param name="message">The error message to log.</param>
     public void LogError(string message)
     {
-        LogWithLevel(LogLevel.Error, $"ERROR: {message}");
+        LogWithLevel(LogLevel.Error, message);
     }
 }
