@@ -355,48 +355,4 @@ class CommandLineManager
             Console.WriteLine(new string(' ', Console.WindowWidth));
         }
     }
-
-    /// <summary>
-    /// Displays a progress bar with the specified label and percentage.
-    /// </summary>
-    /// <param name="label">The label for the progress bar.</param>
-    /// <param name="percentage">The percentage value (0-100).</param>
-    /// <param name="width">The width of the progress bar in characters.</param>
-    public void DisplayProgressBar(string label, double percentage, int width = 50)
-    {
-        lock (_displayLock)
-        {
-            var filled = (int)(percentage / 100.0 * width);
-            var empty = width - filled;
-
-            var bar = $"[{new string('█', filled)}{new string('░', empty)}] {percentage:F1}%";
-            Console.WriteLine($"{label}: {bar}");
-        }
-    }
-
-    /// <summary>
-    /// Shows a loading spinner with the specified message in a background task.
-    /// </summary>
-    /// <param name="message">The message to display with the spinner.</param>
-    /// <param name="cancellationToken">The cancellation token to stop the spinner.</param>
-    public void ShowLoadingSpinner(string message, CancellationToken cancellationToken)
-    {
-        Task.Run(async () =>
-        {
-            var spinnerChars = new[] { '|', '/', '-', '\\' };
-            var index = 0;
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                lock (_displayLock)
-                {
-                    Console.SetCursorPosition(0, Console.WindowHeight - 1);
-                    Console.Write($"{message} {spinnerChars[index % spinnerChars.Length]}");
-                }
-
-                index++;
-                await Task.Delay(250, cancellationToken);
-            }
-        }, cancellationToken);
-    }
 }
