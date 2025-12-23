@@ -110,41 +110,40 @@ class CommandLineManager
 
             Console.SetCursorPosition(0, 0);
 
-            var displayContent = CreateFormattedDisplay(cpuMetrics, memoryMetrics, diskMetrics, networkMetrics, latency);
-            Console.Write(displayContent);
+            WriteColoredDisplay(cpuMetrics, memoryMetrics, diskMetrics, networkMetrics, latency);
 
             FillRemainingLines();
         }
     }
 
     /// <summary>
-    /// Creates a formatted display string for the server metrics dashboard.
+    /// Writes the server metrics display with colors directly to the console.
     /// </summary>
     /// <param name="cpuMetrics">The CPU performance metrics.</param>
     /// <param name="memoryMetrics">The memory usage metrics.</param>
     /// <param name="diskMetrics">The disk usage metrics.</param>
     /// <param name="networkMetrics">The network activity metrics.</param>
     /// <param name="latency">The server latency in milliseconds.</param>
-    /// <returns>A formatted string representing the complete dashboard display.</returns>
-    private string CreateFormattedDisplay(string cpuMetrics, string memoryMetrics, string diskMetrics, string networkMetrics, long latency)
+    private void WriteColoredDisplay(string cpuMetrics, string memoryMetrics, string diskMetrics, string networkMetrics, long latency)
     {
-        var sb = new StringBuilder();
         var width = Console.WindowWidth;
         var height = Console.WindowHeight;
         var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
         // Calculate available space for content
-        var headerHeight = 8; // Header takes ~8 lines
-        var footerHeight = 4; // Footer takes ~4 lines
-        var logsPanelHeight = 10; // Logs panel takes ~10 lines
-        var sectionBorders = 10; // Top and bottom borders for 5 sections (2 lines each)
-        var minSpacing = 5; // Minimum spacing between sections
+        var headerHeight = 8;
+        var footerHeight = 4;
+        var logsPanelHeight = 10;
+        var sectionBorders = 10;
+        var minSpacing = 5;
         var availableContentHeight = height - headerHeight - footerHeight - logsPanelHeight - sectionBorders - minSpacing;
 
-        // Calculate optimal lines per section (divided by 4, not including logs)
+        // Calculate optimal lines per section
         var linesPerSection = Math.Max(10, availableContentHeight / 4);
 
-        sb.AppendLine(@"
+        // ASCII Art Header in Green
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(@"
   ____                             ____  _        _
  / ___|  ___ _ ____   _____ _ __  / ___|| |_ __ _| |_ _   _ ___
  \___ \ / _ \ '__\ \ / / _ \ '__| \___ \| __/ _` | __| | | / __|
@@ -152,97 +151,35 @@ class CommandLineManager
  |____/ \___|_|    \_/ \___|_|    |____/ \__\__,_|\__|\__,_|___/
 
 ");
-        sb.AppendLine($"Timestamp: {timestamp}  |  Latency: {latency}ms");
-        sb.AppendLine();
 
-        sb.AppendLine(CreateSection("CPU PERFORMANCE", cpuMetrics, width, linesPerSection));
-        sb.AppendLine();
+        // Timestamp and Latency in White
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write($"Timestamp: {timestamp}  |  Latency: ");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"{latency}ms");
+        Console.ResetColor();
+        Console.WriteLine();
 
-        sb.AppendLine(CreateSection("MEMORY USAGE", memoryMetrics, width, linesPerSection));
-        sb.AppendLine();
+        WriteColoredSection("CPU PERFORMANCE", cpuMetrics, width, linesPerSection);
+        Console.WriteLine();
 
-        sb.AppendLine(CreateSection("DISK USAGE", diskMetrics, width, linesPerSection));
-        sb.AppendLine();
+        WriteColoredSection("MEMORY USAGE", memoryMetrics, width, linesPerSection);
+        Console.WriteLine();
 
-        sb.AppendLine(CreateSection("NETWORK ACTIVITY", networkMetrics, width, linesPerSection));
-        sb.AppendLine();
+        WriteColoredSection("DISK USAGE", diskMetrics, width, linesPerSection);
+        Console.WriteLine();
 
-        sb.AppendLine(CreateLogsSection(width));
-        sb.AppendLine();
+        WriteColoredSection("NETWORK ACTIVITY", networkMetrics, width, linesPerSection);
+        Console.WriteLine();
 
-        sb.AppendLine(CreateFooter("Press 'q' to quit", width));
+        WriteColoredLogsSection(width);
+        Console.WriteLine();
 
-        return sb.ToString();
+        WriteColoredFooter("Press 'q' to quit", width);
+
+        Console.ResetColor();
     }
 
-    /// <summary>
-    /// Creates a formatted header string for the dashboard with title and timestamp.
-    /// </summary>
-    /// <param name="title">The title of the dashboard.</param>
-    /// <param name="timestamp">The current timestamp.</param>
-    /// <param name="width">The width of the console window.</param>
-    /// <returns>A formatted header string.</returns>
-    private string CreateHeader(string title, string timestamp, int width)
-    {
-        var borderChar = '═';
-        var cornerChar = '╔';
-        var endCornerChar = '╗';
-
-        var headerText = $" {title} ";
-        var timeText = $" {timestamp} ";
-        var totalHeaderLength = headerText.Length + timeText.Length;
-        var padding = Math.Max(0, width - totalHeaderLength - 4);
-
-        var topBorder = cornerChar + new string(borderChar, width - 2) + endCornerChar;
-        var headerLine = $"║{headerText}{new string(' ', padding)}{timeText}║";
-        var bottomBorder = '╚' + new string(borderChar, width - 2) + '╝';
-
-        return topBorder + Environment.NewLine + headerLine + Environment.NewLine + bottomBorder;
-    }
-
-    /// <summary>
-    /// Creates a formatted section string for a specific metric category.
-    /// </summary>
-    /// <param name="title">The title of the section.</param>
-    /// <param name="content">The content to display in the section.</param>
-    /// <param name="width">The width of the console window.</param>
-    /// <param name="maxLines">The maximum number of lines to display in the section.</param>
-    /// <returns>A formatted section string.</returns>
-    private string CreateSection(string title, string content, int width, int maxLines = 10)
-    {
-        var sb = new StringBuilder();
-        var titleLine = $"┌─ {title} {new string('─', Math.Max(0, width - title.Length - 6))}┐";
-        sb.AppendLine(titleLine);
-
-        if (!string.IsNullOrWhiteSpace(content))
-        {
-            var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            var processedLines = ProcessStructuredContent(lines, width - 4);
-            
-            // Limit total lines to fit in display - dynamically calculated based on terminal size
-            var linesToShow = Math.Min(processedLines.Count, maxLines);
-            for (int i = 0; i < linesToShow; i++)
-            {
-                sb.AppendLine($"│ {processedLines[i].PadRight(width - 4)} │");
-            }
-            
-            // Add "more data" indicator if truncated
-            if (processedLines.Count > linesToShow)
-            {
-                var moreText = $"... {processedLines.Count - linesToShow} more lines";
-                sb.AppendLine($"│ {moreText.PadRight(width - 4)} │");
-            }
-        }
-        else
-        {
-            sb.AppendLine($"│ {"No data available".PadRight(width - 4)} │");
-        }
-
-        var bottomLine = $"└{new string('─', width - 2)}┘";
-        sb.AppendLine(bottomLine);
-
-        return sb.ToString();
-    }
 
     /// <summary>
     /// Processes the structured content lines to format them appropriately for display.
@@ -292,26 +229,87 @@ class CommandLineManager
         return result;
     }
 
+
     /// <summary>
-    /// Creates a formatted logs section displaying recent log entries from the Logger.
+    /// Writes a colored section directly to the console.
+    /// </summary>
+    /// <param name="title">The title of the section.</param>
+    /// <param name="content">The content to display in the section.</param>
+    /// <param name="width">The width of the console window.</param>
+    /// <param name="maxLines">The maximum number of lines to display.</param>
+    private void WriteColoredSection(string title, string content, int width, int maxLines)
+    {
+        // Section title and border in green
+        Console.ForegroundColor = ConsoleColor.Green;
+        var titleLine = $"┌─ {title} {new string('─', Math.Max(0, width - title.Length - 6))}┐";
+        Console.WriteLine(titleLine);
+
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var processedLines = ProcessStructuredContent(lines, width - 4);
+
+            var linesToShow = Math.Min(processedLines.Count, maxLines);
+            for (int i = 0; i < linesToShow; i++)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("│ ");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(processedLines[i].PadRight(width - 4));
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(" │");
+            }
+
+            if (processedLines.Count > linesToShow)
+            {
+                var moreText = $"... {processedLines.Count - linesToShow} more lines";
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("│ ");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(moreText.PadRight(width - 4));
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(" │");
+            }
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("│ ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("No data available".PadRight(width - 4));
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(" │");
+        }
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        var bottomLine = $"└{new string('─', width - 2)}┘";
+        Console.WriteLine(bottomLine);
+        Console.ResetColor();
+    }
+
+    /// <summary>
+    /// Writes the logs section with colored log levels directly to the console.
     /// </summary>
     /// <param name="width">The width of the console window.</param>
-    /// <returns>A formatted logs section string.</returns>
-    private string CreateLogsSection(int width)
+    private void WriteColoredLogsSection(int width)
     {
-        var sb = new StringBuilder();
-        var maxLogLines = 8; // Fixed number of log lines
+        var maxLogLines = 8;
         var logs = Logger.Instance.GetRecentLogs(maxLogLines);
 
+        // Title in Green
+        Console.ForegroundColor = ConsoleColor.Green;
         var titleLine = $"┌─ RECENT LOGS {new string('─', Math.Max(0, width - 16))}┐";
-        sb.AppendLine(titleLine);
+        Console.WriteLine(titleLine);
 
-        // Always display exactly maxLogLines lines
         for (int i = 0; i < maxLogLines; i++)
         {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("│ ");
+
             if (i < logs.Count)
             {
-                var displayStr = logs[i].ToDisplayString();
+                var log = logs[i];
+                var displayStr = log.ToDisplayString();
 
                 // Truncate if too long
                 if (displayStr.Length > width - 4)
@@ -319,33 +317,48 @@ class CommandLineManager
                     displayStr = displayStr[..(width - 7)] + "...";
                 }
 
-                sb.AppendLine($"│ {displayStr.PadRight(width - 4)} │");
+                // All logs in white
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(displayStr.PadRight(width - 4));
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(" │");
             }
             else
             {
-                // Pad with empty lines to maintain fixed height
-                sb.AppendLine($"│ {new string(' ', width - 4)} │");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(new string(' ', width - 4));
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(" │");
             }
         }
 
+        Console.ForegroundColor = ConsoleColor.Green;
         var bottomLine = $"└{new string('─', width - 2)}┘";
-        sb.AppendLine(bottomLine);
-
-        return sb.ToString();
+        Console.WriteLine(bottomLine);
+        Console.ResetColor();
     }
 
     /// <summary>
-    /// Creates a formatted footer string for the dashboard.
+    /// Writes the footer with color directly to the console.
     /// </summary>
     /// <param name="text">The text to display in the footer.</param>
     /// <param name="width">The width of the console window.</param>
-    /// <returns>A formatted footer string.</returns>
-    private string CreateFooter(string text, int width)
+    private void WriteColoredFooter(string text, int width)
     {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"┌{new string('─', width - 2)}┐");
+
         var padding = Math.Max(0, (width - text.Length - 2) / 2);
-        return $"┌{new string('─', width - 2)}┐" + Environment.NewLine +
-               $"│{new string(' ', padding)}{text}{new string(' ', width - text.Length - padding - 2)}│" + Environment.NewLine +
-               $"└{new string('─', width - 2)}┘";
+        Console.Write("│");
+        Console.Write(new string(' ', padding));
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(text);
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write(new string(' ', width - text.Length - padding - 2));
+        Console.WriteLine("│");
+
+        Console.WriteLine($"└{new string('─', width - 2)}┘");
+        Console.ResetColor();
     }
 
     /// <summary>
