@@ -10,14 +10,17 @@ using ServerStatus.Util;
 Credentials.Load();
 Emailer.Load(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Credentials.Password!);
 
-// Create CLI and connection instances
+// Create CLI instance and TUI display
 var cli = new CommandLineManager();
-var sshConnection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
-var pingConnection = new PingConnection(Credentials.Host!);
+cli.StartDisplayMode();
 
 // Handle CLI keyboard interrupt
 var cts = new CancellationTokenSource();
 cli.StartKeyboardHandling(cts);
+
+// Create connnection instances
+var sshConnection = new SshConnection(Credentials.Host!, Credentials.User!, Credentials.Password!);
+var pingConnection = new PingConnection(Credentials.Host!);
 
 if (sshConnection.Connect())
 {
@@ -27,7 +30,6 @@ if (sshConnection.Connect())
     var memory = new ServerPerformanceMemory(sshConnection, Credentials.OperatingSystem!);
     var network = new ServerPerformanceNetwork(sshConnection, pingConnection, Credentials.OperatingSystem!);
 
-    cli.StartDisplayMode();
 
     try
     {
