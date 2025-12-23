@@ -12,7 +12,7 @@ Emailer.Load(Credentials.SmtpHost!, Credentials.SmtpPort, Credentials.User!, Cre
 
 // Create CLI instance and TUI display
 var cli = new CommandLineManager();
-cli.StartDisplayMode();
+cli.StartDisplay();
 
 // Handle CLI keyboard interrupt
 var cts = new CancellationTokenSource();
@@ -53,7 +53,7 @@ if (sshConnection.Connect())
     }
     finally
     {
-        cli.EndDisplayMode();
+        cli.StopDisplay();
         sshConnection.Disconnect();
     }
 }

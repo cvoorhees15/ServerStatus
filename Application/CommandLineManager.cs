@@ -65,7 +65,7 @@ class CommandLineManager
     /// <summary>
     /// Starts the display mode by clearing the console and hiding the cursor for real-time metrics display.
     /// </summary>
-    public void StartDisplayMode()
+    public void StartDisplay()
     {
         lock (_displayLock)
         {
@@ -79,9 +79,9 @@ class CommandLineManager
     }
 
     /// <summary>
-    /// Ends the display mode by showing the cursor and clearing the console.
+    /// Stops the display by showing the cursor and clearing the console.
     /// </summary>
-    public void EndDisplayMode()
+    public void StopDisplay()
     {
         lock (_displayLock)
         {
