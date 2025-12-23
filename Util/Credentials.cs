@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 /// <summary>
 /// Provides static access to application credentials loaded from a JSON configuration file.
 /// </summary>

@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using ServerStatus.Util;
-
 class CommandLineManager
 {
     private readonly object _displayLock = new object();

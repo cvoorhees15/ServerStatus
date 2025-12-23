@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Provides a thread-safe singleton logger for outputting messages to the console.
 /// </summary>

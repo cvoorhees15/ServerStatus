@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Provides a base class for different types of server connections.
 /// </summary>

@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Represents a single log entry with timestamp, level, and message.
 /// </summary>
